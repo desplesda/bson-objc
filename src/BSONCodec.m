@@ -10,6 +10,7 @@
 #import <ctype.h>
 #import <string.h>
 #import <objc/runtime.h>
+#import <objc/message.h>
 
 #define BSONTYPE(tag,className) [className class], [NSNumber numberWithChar: (tag)]
 
@@ -19,7 +20,7 @@ static NSDictionary *BSONTypes()
 
 	if (retval == nil)
 	{
-		retval = [[NSDictionary dictionaryWithObjectsAndKeys:
+		retval = [NSDictionary dictionaryWithObjectsAndKeys:
 				  BSONTYPE(0x01, NSNumber),
 				  BSONTYPE(0x02, NSString),
 				  BSONTYPE(0x03, NSDictionary),
@@ -30,7 +31,7 @@ static NSDictionary *BSONTypes()
 				  BSONTYPE(0x0A, NSNull),
 				  BSONTYPE(0x10, NSNumber),
 				  BSONTYPE(0x12, NSNumber),
-				  nil] retain];
+				  nil];
 	}
 
 	return retval;
@@ -89,7 +90,6 @@ static NSDictionary *BSONTypes()
 	const char* className = class_getName([self class]);
 	[values setObject: [NSData dataWithBytes: (void *)className length: strlen(className)] forKey: CLASS_NAME_MARKER];
 	NSData *retval = [values BSONEncode];
-	[values release];
 
 	return retval;
 }
@@ -115,11 +115,9 @@ static NSDictionary *BSONTypes()
 
 	NSMutableData *lengthData = [[NSMutableData alloc] initWithLength: 4];
 	[components addObject: lengthData];
-	[lengthData release];
 
 	NSMutableData *contentsData = [[NSMutableData alloc] init];
 	[components addObject: contentsData];
-	[contentsData release];
 
 	[components addObject: [NSData dataWithBytes: "\x00" length: 1]];
 
@@ -146,7 +144,6 @@ static NSDictionary *BSONTypes()
 		[contentsData appendBytes: "\x00" length: 1];
 		[contentsData appendData: [value BSONEncode]];
 	}
-	[keys release];
 
 	// Write length.
 	uint32_t *length = (uint32_t *)[lengthData mutableBytes];
@@ -156,7 +153,6 @@ static NSDictionary *BSONTypes()
 	NSMutableData *retval = [NSMutableData data];
 	for (NSData *data in components)
 		[retval appendData: data];
-	[components release];
 
 	return retval;
 }
@@ -293,7 +289,7 @@ static NSDictionary *BSONTypes()
 
 		case 'q': return 0x12;
 		default:
-			[NSException raise: NSInvalidArgumentException format: @"%@::%s - invalid encoding type '%c'", [self class], _cmd, encoding];
+			[NSException raise: NSInvalidArgumentException format: @"%@::%@ - invalid encoding type '%c'", [self class], NSStringFromSelector(_cmd), encoding];
 	}
 	return 0;
 }
@@ -361,7 +357,7 @@ static NSDictionary *BSONTypes()
 		return [NSData dataWithBytes: &value length: 8];
 	}
 
-	[NSException raise: NSInvalidArgumentException format: @"%@::%s - invalid encoding type '%c'", [self class], _cmd, encoding];
+	[NSException raise: NSInvalidArgumentException format: @"%@::%@ - invalid encoding type '%c'", [self class], NSStringFromSelector(_cmd), encoding];
 	return nil;
 }
 
@@ -457,11 +453,9 @@ static NSDictionary *BSONTypes()
 	
 	NSMutableData *lengthData = [[NSMutableData alloc] initWithLength: 4];
 	[components addObject: lengthData];
-	[lengthData release];
 	
 	NSMutableData *contentsData = [[NSMutableData alloc] init];
 	[components addObject: contentsData];
-	[contentsData release];
 	
 	[components addObject: [NSData dataWithBytes: "\x00" length: 1]];
 	
@@ -491,7 +485,6 @@ static NSDictionary *BSONTypes()
 	NSMutableData *retval = [NSMutableData data];
 	for (NSData *data in components)
 		[retval appendData: data];
-	[components release];
 	
 	return retval;
 }
