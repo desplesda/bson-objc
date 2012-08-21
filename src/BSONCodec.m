@@ -86,8 +86,14 @@ static NSDictionary *BSONTypes()
 
 	id <BSONObjectCoding> myself = (id <BSONObjectCoding>) self;
 	NSMutableDictionary *values = [[myself BSONDictionary] mutableCopy];
-
-	const char* className = class_getName([self class]);
+    
+    Class classForEncoding = [self class];
+    
+    if ([self respondsToSelector:@selector(replacementClassForBSONEncoding)]) {
+        classForEncoding = [myself replacementClassForBSONEncoding];
+    }
+    
+    const char* className = class_getName(classForEncoding);
 	[values setObject: [NSData dataWithBytes: (void *)className length: strlen(className)] forKey: CLASS_NAME_MARKER];
 	NSData *retval = [values BSONEncode];
 
