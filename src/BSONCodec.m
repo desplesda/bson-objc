@@ -213,6 +213,8 @@ static NSDictionary *BSONTypes()
 		Class targetClass = objc_getClass(className);
 		if (targetClass == nil)
 			[NSException raise: NSInvalidArgumentException format: @"Class %s found in incoming data is undefined.", className];
+        
+        free(className);
 
 		id obj = [[targetClass alloc] initWithBSONDictionary: retval];
 		return obj;
