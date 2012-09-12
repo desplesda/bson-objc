@@ -378,7 +378,12 @@ static NSDictionary *BSONTypes()
 {
 	if (t == 0x01)
 	{
-		double value = ((double *) *base)[0];
+        // JM 12/Sep/2012
+        // ARMv7 can have memory alignment issues when
+        // dealing with doubles. Rather than dereference the source,
+        // copy into a buffer.
+        double value;
+        memcpy(&value, *base, sizeof(value));
 		*base += 8;
 		return [NSNumber numberWithDouble: value];
 	}
